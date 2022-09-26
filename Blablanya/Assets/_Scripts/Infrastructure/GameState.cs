@@ -1,4 +1,6 @@
-﻿namespace _Scripts.Infrastructure
+﻿using System.Threading.Tasks;
+
+namespace _Scripts.Infrastructure
 {
     public class GameState : IState
     {

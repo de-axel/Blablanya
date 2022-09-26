@@ -15,7 +15,7 @@ namespace _Scripts.Infrastructure
         
         public void Enter()
         {
-            _sceneLoader.LoadScene("Game", () => IsGameLoaded = true);
+            _sceneLoader.LoadScene(SceneNames.Game, () => IsGameLoaded = true);
             Debug.Log("blablanya");
         }
 

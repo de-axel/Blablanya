@@ -1,41 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace _Scripts.Infrastructure
 {
     public class StateMachine
     {
-        private Dictionary<Type, IState> _states;
-        private Dictionary<Type, List<Transition>> _transitions;
+        private readonly Dictionary<IState, List<Transition>> _transitions;
+        
+        private List<Transition> _currentTransitions;
         private IState _currentState;
 
         public StateMachine()
         {
-            _states = new Dictionary<Type, IState>();
-            _transitions = new Dictionary<Type, List<Transition>>();
+            _transitions = new Dictionary<IState, List<Transition>>();
         }
-
-        /*public void Enter<TState>() where TState : IState
-        {
-            _currentState?.Exit();
-        }*/
 
         public void AddTransition(IState from, IState to, Func<bool> condition)
         {
-            Type state = from.GetType();
-
-            if (!_transitions.ContainsKey(state))
-            {
-                _transitions.Add(state, new List<Transition>());
-            }
+            if (!_transitions.ContainsKey(from))
+                _transitions.Add(from, new List<Transition>());
             
-            _transitions[state].Add(new Transition(to, condition));
-        }
-
-        public void TryGetTransition()
-        {
-            
+            _transitions[from].Add(new Transition(to, condition));
         }
 
         public void SetState(IState state)
@@ -47,7 +34,34 @@ namespace _Scripts.Infrastructure
             
             _currentState?.Exit();
             _currentState = state;
+            _currentTransitions = GetStateTransitions(_currentState);
             _currentState.Enter();
         }
+
+        public void Update()
+        {
+            UpdateTransition();
+        }
+
+        private void UpdateTransition()
+        {
+            if (TryGetTransition(out Transition transition))
+                SetState(transition.State);
+        }
+
+        private bool TryGetTransition(out Transition transition)
+        {
+            foreach (var currentTransition in _currentTransitions.Where(currentTransition => currentTransition.Condition()))
+            {
+                transition = currentTransition;
+                return true;
+            }
+
+            transition = null;
+            return false;
+        }
+
+        private List<Transition> GetStateTransitions(IState state) => 
+            _transitions.ContainsKey(state) ? _transitions[state] : new List<Transition>();
     }
 }
